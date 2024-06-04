@@ -2,6 +2,7 @@ import {
   Avatar,
   Box,
   Button,
+  CircularProgress,
   FormControl,
   Grid,
   InputLabel,
@@ -15,6 +16,7 @@ import React, { useEffect, useState } from "react";
 import AcUnitIcon from "@mui/icons-material/AcUnit";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 interface IFormValues {
   farmerEmail: string;
@@ -31,6 +33,9 @@ interface ISeed {
 export const AppForm: React.FC = () => {
   const [seeds, setSeeds] = useState<ISeed[]>([]);
   const [selectedItem, setSelectedItem] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const serverUrl = import.meta.env.VITE_SERVER_URL;
+  console.log("SERVER URL:", serverUrl);
 
   useEffect(() => {
     fetchSeeds();
@@ -38,12 +43,10 @@ export const AppForm: React.FC = () => {
 
   const fetchSeeds = async () => {
     try {
-      // console.log(`${process.env.REACT_APP_SERVER_URL}`);
-      const response = await axios.get(
-        `https://agro-input.onrender.com/seed/all`
-      );
-      console.log(response.data.data);
-      setSeeds(response.data.data);
+      if (serverUrl !== undefined) {
+        const response = await axios.get(`${serverUrl}/seed/all`);
+        setSeeds(response.data.data);
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -63,19 +66,28 @@ export const AppForm: React.FC = () => {
   const { register, handleSubmit, formState } = form;
   const { errors } = formState;
 
+  const navigate = useNavigate();
+
   const onSubmit = async (data: IFormValues) => {
-    console.log("DATA SEND:", data);
     data.seedId = selectedItem;
+    data.landSize = parseFloat(data.landSize.toString());
+    setLoading(true);
+
     await axios
-      .post(`https://agro-input.onrender.com/order`, { data })
+      .post(`${serverUrl}/order`, { data })
       .then((res) => {
-        console.log("RESPONSE FROM SERVER:", res.data);
+        if (res.status === 201) {
+          navigate("/orderDetails", { state: { data: res.data.data } });
+        }
       })
       .catch((err) => {
         console.log("ERROR FROM SERVER:", err);
+      })
+      .finally(() => {
+        setLoading(false);
       });
-    console.log(data);
   };
+
   const paperStyle = {
     padding: 20,
     height: "70vh",
@@ -145,6 +157,9 @@ export const AppForm: React.FC = () => {
                 label="Land Size"
                 {...register("landSize", { required: "Provide Land Size" })}
                 fullWidth
+                InputProps={{
+                  inputProps: { min: 0 },
+                }}
                 error={!!errors.landSize}
                 helperText={errors.landSize?.message}
               />
@@ -175,7 +190,11 @@ export const AppForm: React.FC = () => {
               sx={{ color: "#fff", backgroundColor: "#4d426e", m: 3 }}
               type="submit"
             >
-              Place the Order
+              {loading ? (
+                <CircularProgress sx={{ color: "white" }} />
+              ) : (
+                "Place the Order"
+              )}
             </Button>
           </Box>
         </form>

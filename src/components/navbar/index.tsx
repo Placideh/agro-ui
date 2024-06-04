@@ -7,6 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import React from "react";
+import { Link } from "react-router-dom";
 
 interface INavBarProps {}
 const navItems = ["Home"];
@@ -29,7 +30,12 @@ export const NavBar: React.FC<INavBarProps> = () => {
           </Typography>
           <Box sx={{ display: { xs: "block", sm: "block" } }}>
             {navItems.map((item) => (
-              <Button key={item} sx={{ color: "#4d426e" }}>
+              <Button
+                key={item}
+                sx={{ color: "#4d426e" }}
+                component={Link}
+                to="/"
+              >
                 {item}
               </Button>
             ))}

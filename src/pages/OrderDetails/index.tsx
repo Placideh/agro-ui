@@ -1,13 +1,25 @@
-import { Avatar, Box, Button, Grid, Paper } from "@mui/material";
-import React from "react";
+import {
+  Avatar,
+  Box,
+  Button,
+  CircularProgress,
+  Grid,
+  Paper,
+} from "@mui/material";
+import React, { useState } from "react";
 import AcUnitIcon from "@mui/icons-material/AcUnit";
 import NavBar from "../../components/navbar";
 import PaymentsIcon from "@mui/icons-material/Payments";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 interface IOrderDetailProps {}
 
 export const OrderDetail: React.FC<IOrderDetailProps> = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const orderDetails = location.state?.data;
   const paperStyle = {
     padding: 20,
     height: "70vh",
@@ -16,6 +28,24 @@ export const OrderDetail: React.FC<IOrderDetailProps> = () => {
     justifyContent: "center",
     alignItems: "center",
     overflow: "scroll",
+  };
+
+  const handleClick = async (orderId: string) => {
+    setLoading(true);
+    const serverUrl = import.meta.env.VITE_SERVER_URL;
+    await axios
+      .patch(`${serverUrl}/order/${orderId}`, { status: "pending" })
+      .then((res) => {
+        if (res.status === 201) {
+          navigate("/list");
+        }
+      })
+      .catch((err) => {
+        console.log("ERROR FROM SERVER:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
@@ -67,7 +97,7 @@ export const OrderDetail: React.FC<IOrderDetailProps> = () => {
             <h2>Total Amount: </h2>
           </Grid>
           <Grid item>
-            <h2>5000 Rwf </h2>
+            <h2>{orderDetails.amount} Rwf </h2>
           </Grid>
         </Grid>
         <form noValidate>
@@ -81,36 +111,36 @@ export const OrderDetail: React.FC<IOrderDetailProps> = () => {
           >
             <Grid item xs={6} container justifyContent="center">
               <h5>Farmer: </h5>
-              <h5>Placide</h5>
+              <h5>{orderDetails.farmerName}</h5>
             </Grid>
             <Grid item xs={6} container justifyContent="center">
               <h5>Email: </h5>
-              <h5>Placide@gmail.com</h5>
+              <h5>{orderDetails.farmerEmail}</h5>
             </Grid>
             <Grid item xs={6} container justifyContent="center">
               <h5>Land Size: </h5>
-              <h5>2 Acre</h5>
+              <h5>{orderDetails.landSize} Acre</h5>
             </Grid>
             <Grid item xs={6} container justifyContent="center">
               <h5>Seed:</h5>
-              <h5>MAIZE</h5>
+              <h5>{orderDetails.seed.name}</h5>
             </Grid>
             <Grid item xs={6} container justifyContent="center">
               <h5>Fertilizer:</h5>
-              <h5>Lime</h5>
+              <h5>{orderDetails.seed.fertilizer.name}</h5>
             </Grid>
             <Grid item xs={6} container justifyContent="center">
               <h5>Fertilizer Qty:</h5>
-              <h5>3 Kg</h5>
+              <h5>{orderDetails!.fertilizerQuantity} Kg</h5>
             </Grid>
 
             <Grid item xs={6} container justifyContent="center">
               <h5>Fertilizer Price:</h5>
-              <h5>3000 Rwf</h5>
+              <h5>{orderDetails.seed.fertilizer.price} Rwf</h5>
             </Grid>
             <Grid item xs={6} container justifyContent="center">
               <h5>Seed Price:</h5>
-              <h5>2000 Rwf</h5>
+              <h5>{orderDetails.seed.price} Rwf</h5>
             </Grid>
           </Grid>
           <Grid
@@ -131,11 +161,14 @@ export const OrderDetail: React.FC<IOrderDetailProps> = () => {
               </Button>
             </Grid>
             <Grid item>
+              {loading && <CircularProgress color="secondary" />}
+
               <Button
                 component={Link}
                 to="/list"
                 variant="contained"
                 sx={{ color: "#fff", backgroundColor: "green", m: 3 }}
+                onClick={() => handleClick(orderDetails.id)}
               >
                 Proceed
               </Button>

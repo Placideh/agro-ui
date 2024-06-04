@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   TablePagination,
   Paper,
@@ -11,6 +11,7 @@ import {
   Button,
 } from "@mui/material";
 import NavBar from "../../components/navbar";
+import axios from "axios";
 
 interface Column {
   id: keyof Data | "actions";
@@ -56,11 +57,8 @@ const columns: readonly Column[] = [
   { id: "actions", label: "Actions", minWidth: 130, align: "right" },
 ];
 
-function generateRandomId(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
 const createData = (
+  id: string,
   name: string,
   email: string,
   size: number,
@@ -72,7 +70,7 @@ const createData = (
   status: string
 ): Data => {
   return {
-    id: generateRandomId(),
+    id,
     name,
     email,
     size,
@@ -85,283 +83,91 @@ const createData = (
   };
 };
 
-const rows = [
-  createData(
-    "John Doe",
-    "john@example.com",
-    20,
-    "Urea",
-    200,
-    50000,
-    "Maize",
-    10000,
-    "Pending"
-  ),
-  createData(
-    "Jane Smith",
-    "jane@example.com",
-    15,
-    "NPK",
-    150,
-    40000,
-    "Wheat",
-    8000,
-    "Approved"
-  ),
-  createData(
-    "Alice Johnson",
-    "alice@example.com",
-    10,
-    "DAP",
-    100,
-    30000,
-    "Rice",
-    6000,
-    "Pending"
-  ),
-  createData(
-    "Bob Brown",
-    "bob@example.com",
-    25,
-    "Urea",
-    250,
-    70000,
-    "Barley",
-    12000,
-    "Rejected"
-  ),
-  createData(
-    "Carol White",
-    "carol@example.com",
-    30,
-    "NPK",
-    300,
-    90000,
-    "Soybean",
-    15000,
-    "Approved"
-  ),
-  createData(
-    "David Lee",
-    "david@example.com",
-    22,
-    "DAP",
-    220,
-    55000,
-    "Corn",
-    11000,
-    "Rejected"
-  ),
-  createData(
-    "Emily Taylor",
-    "emily@example.com",
-    18,
-    "Urea",
-    180,
-    45000,
-    "Oats",
-    9000,
-    "Pending"
-  ),
-  createData(
-    "Frank Johnson",
-    "frank@example.com",
-    12,
-    "NPK",
-    120,
-    35000,
-    "Wheat",
-    7000,
-    "Approved"
-  ),
-  createData(
-    "Grace Davis",
-    "grace@example.com",
-    28,
-    "DAP",
-    280,
-    60000,
-    "Soybean",
-    13000,
-    "Rejected"
-  ),
-  createData(
-    "Henry Wilson",
-    "henry@example.com",
-    24,
-    "Urea",
-    240,
-    65000,
-    "Rice",
-    12500,
-    "Pending"
-  ),
-  createData(
-    "Isabel Clark",
-    "isabel@example.com",
-    16,
-    "NPK",
-    160,
-    42000,
-    "Maize",
-    8400,
-    "Approved"
-  ),
-  createData(
-    "Jack Thomas",
-    "jack@example.com",
-    14,
-    "DAP",
-    140,
-    32000,
-    "Barley",
-    6400,
-    "Rejected"
-  ),
-  createData(
-    "Kelly Roberts",
-    "kelly@example.com",
-    26,
-    "Urea",
-    260,
-    75000,
-    "Soybean",
-    14500,
-    "Pending"
-  ),
-  createData(
-    "Linda Evans",
-    "linda@example.com",
-    21,
-    "NPK",
-    210,
-    55000,
-    "Wheat",
-    11000,
-    "Approved"
-  ),
-  createData(
-    "Michael Brown",
-    "michael@example.com",
-    17,
-    "DAP",
-    170,
-    47000,
-    "Corn",
-    9400,
-    "Rejected"
-  ),
-  createData(
-    "Nancy Martinez",
-    "nancy@example.com",
-    29,
-    "Urea",
-    290,
-    80000,
-    "Oats",
-    16000,
-    "Pending"
-  ),
-  createData(
-    "Olivia Garcia",
-    "olivia@example.com",
-    23,
-    "NPK",
-    230,
-    62000,
-    "Soybean",
-    12400,
-    "Approved"
-  ),
-  createData(
-    "Peter Rodriguez",
-    "peter@example.com",
-    27,
-    "DAP",
-    270,
-    70000,
-    "Rice",
-    14000,
-    "Rejected"
-  ),
-  createData(
-    "Quincy Hall",
-    "quincy@example.com",
-    19,
-    "Urea",
-    190,
-    50000,
-    "Maize",
-    10000,
-    "Pending"
-  ),
-  createData(
-    "Rachel Harris",
-    "rachel@example.com",
-    13,
-    "NPK",
-    130,
-    37000,
-    "Wheat",
-    7400,
-    "Approved"
-  ),
-  createData(
-    "Steven Wright",
-    "steven@example.com",
-    31,
-    "DAP",
-    310,
-    85000,
-    "Barley",
-    17000,
-    "Rejected"
-  ),
-  createData(
-    "Tina Lopez",
-    "tina@example.com",
-    25,
-    "Urea",
-    250,
-    70000,
-    "Soybean",
-    14000,
-    "Pending"
-  ),
-  createData(
-    "Uma Patel",
-    "uma@example.com",
-    32,
-    "NPK",
-    320,
-    90000,
-    "Rice",
-    18000,
-    "Approved"
-  ),
-  createData(
-    "Victor Lee",
-    "victor@example.com",
-    33,
-    "DAP",
-    330,
-    95000,
-    "Corn",
-    19000,
-    "Rejected"
-  ),
-];
+interface ISeed {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  fertilizer: IFertilizer;
+}
+
+interface IFertilizer {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+}
+
+interface IOrder {
+  id: string;
+  amount: number;
+  landSize: number;
+  fertilizerQuantity: number;
+  seedQuantity: number;
+  paymentMethod: string;
+  farmerName: string;
+  farmerEmail: string;
+  seed: ISeed;
+  status: string;
+}
 
 const TableList: React.FC = () => {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rows, setRows] = useState<Data[]>([]);
+  const serverUrl = import.meta.env.VITE_SERVER_URL;
 
-  const handleAccept = (id: string) => {
-    alert(`Accepted: ${id}`);
+  const getAllOrders = () => {
+    if (serverUrl !== undefined) {
+      axios
+        .get(`${serverUrl}/order/paginate`)
+        .then((res) => {
+          const newRows = res.data.data.map((order: IOrder) =>
+            createData(
+              order.id,
+              order.farmerName,
+              order.farmerEmail,
+              order.landSize,
+              order.seed.fertilizer.name,
+              order.fertilizerQuantity,
+              order.seed.fertilizer.price,
+              order.seed.name,
+              order.seed.price,
+              order.status
+            )
+          );
+          setRows(newRows);
+        })
+        .catch((err) => {
+          console.log("ERROR FROM SERVER:", err);
+        });
+    }
   };
 
-  const handleCancel = (id: string) => {
-    alert(`Accepted: ${id}`);
+  useEffect(() => {
+    getAllOrders();
+  }, []);
+
+  const updateOrder = async (orderId: string, status: string) => {
+    const serverUrl = import.meta.env.VITE_SERVER_URL;
+    await axios
+      .patch(`${serverUrl}/order/${orderId}`, { status })
+      .then((res) => {
+        if (res.status === 200) {
+          getAllOrders();
+        }
+      })
+      .catch((err) => {
+        console.log("ERROR FROM SERVER:", err);
+      });
+  };
+
+  const handleAccept = async (orderId: string) => {
+    await updateOrder(orderId, "approved");
+  };
+
+  const handleCancel = async (orderId: string) => {
+    await updateOrder(orderId, "rejected");
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -378,7 +184,7 @@ const TableList: React.FC = () => {
   return (
     <Paper sx={{ width: "100%", overflow: "hidden" }}>
       <NavBar />
-      <TableContainer>
+      <TableContainer sx={{ mt: 8 }}>
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
             <TableRow>
@@ -415,14 +221,14 @@ const TableList: React.FC = () => {
                                 color="primary"
                                 onClick={() => handleAccept(row.id)}
                               >
-                                Accept
+                                Approve
                               </Button>
                               <Button
                                 variant="contained"
                                 color="secondary"
                                 onClick={() => handleCancel(row.id)}
                               >
-                                Cancel
+                                Reject
                               </Button>
                             </div>
                           </TableCell>
@@ -442,7 +248,7 @@ const TableList: React.FC = () => {
         </Table>
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
+        rowsPerPageOptions={[5]}
         component="div"
         count={rows.length}
         rowsPerPage={rowsPerPage}
